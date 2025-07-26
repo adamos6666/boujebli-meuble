@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
+
 // Exemple d'appel API depuis Next.js vers le backend NestJS
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://boujebli-meuble-backend.onrender.com';
 
 // Types pour les réponses API
 interface ProduitStandard {
