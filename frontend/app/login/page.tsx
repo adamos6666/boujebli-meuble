@@ -79,20 +79,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-black text-white p-4">
-        <div className="flex justify-between items-center max-w-md mx-auto">
-          <h1 className="text-xl font-bold">Boujebli Meuble</h1>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">FR</span>
-            <span className="text-gray-400">|</span>
-            <span className="text-sm">EN</span>
-            <span className="text-gray-400">|</span>
-            <span className="text-sm">AR</span>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
