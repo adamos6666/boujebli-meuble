@@ -43,6 +43,14 @@ export default function UserMenu() {
 
   const t = translations[locale as keyof typeof translations] || translations.fr;
 
+  // Logs de débogage
+  console.log('🔍 UserMenu Debug:', {
+    user: user,
+    isAuthenticated: isAuthenticated,
+    token: localStorage.getItem('token'),
+    isOpen: isOpen
+  });
+
   useEffect(() => {
     const savedLocale = localStorage.getItem('locale') || 'fr';
     setLocale(savedLocale);
@@ -67,22 +75,52 @@ export default function UserMenu() {
     router.push('/');
   };
 
-  // Si l'utilisateur n'est pas authentifié, ne pas afficher le menu
+  // Si l'utilisateur n'est pas authentifié, afficher un bouton de connexion
   if (!isAuthenticated || !user) {
-    return null;
+    console.log('❌ UserMenu: Utilisateur non authentifié');
+    return (
+      <div className="flex items-center space-x-4">
+        <Link 
+          href="/login"
+          className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium"
+        >
+          Connexion
+        </Link>
+        <Link 
+          href="/register"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
+        >
+          Inscription
+        </Link>
+      </div>
+    );
   }
+
+  console.log('✅ UserMenu: Utilisateur authentifié, affichage du menu');
 
   return (
     <div 
       className="relative" 
       ref={menuRef}
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={() => {
+        console.log('🖱️ Mouse Enter - Ouverture du menu');
+        setIsOpen(true);
+      }}
+      onMouseLeave={() => {
+        console.log('🖱️ Mouse Leave - Fermeture du menu');
+        setIsOpen(false);
+      }}
     >
       {/* Bouton utilisateur */}
       <button
         className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
         title={`${t.welcome}, ${user.name}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('🖱️ Clic sur bouton utilisateur');
+          setIsOpen(!isOpen);
+        }}
       >
         <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

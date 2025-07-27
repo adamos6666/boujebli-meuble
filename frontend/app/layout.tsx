@@ -5,6 +5,7 @@ import TranslatedHeader from "./components/TranslatedHeader";
 import Footer from "./components/Footer";
 import { AccessibilityEnhancer } from "./components/AccessibilityEnhancer";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
+import AuthDebug from "./components/AuthDebug";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <AccessibilityEnhancer />
         <PerformanceMonitor />
+        <AuthDebug />
       </body>
     </html>
   );
