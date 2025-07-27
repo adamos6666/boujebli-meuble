@@ -1,109 +1,100 @@
-# Guide de Diagnostic - Problème d'Authentification
+# 🔍 Guide de Diagnostic - Problème d'Authentification
 
-## 🚨 Problème Identifié
+## 📋 **Problème Identifié**
+- L'utilisateur se connecte mais reste non authentifié
+- Le panneau de débogage affiche `isAuthenticated: ❌`
+- Le menu utilisateur ne s'affiche pas
+- Erreur : "❌ UserMenu: Utilisateur non authentifié"
 
-Vous avez une erreur "Internal server error" dans `lib/api.ts` ligne 71, et aucun signe de connexion n'est affiché.
+## 🔧 **Solutions Appliquées**
 
-## 🔍 Diagnostic Effectué
+### **1. Correction de la Persistance**
+- ✅ **Fichier modifié :** `frontend/hooks/useAuth.ts`
+- ✅ **Sauvegarde utilisateur** dans localStorage
+- ✅ **Chargement utilisateur** au démarrage
+- ✅ **Gestion d'erreur** pour le parsing JSON
 
-### ✅ Tests Réussis
-- **Backend API** : Fonctionne parfaitement (tests Node.js OK)
-- **Connectivité** : L'API est accessible depuis le serveur
-- **Authentification** : Inscription et connexion fonctionnent
+### **2. Configuration API**
+- ✅ **Fichier modifié :** `frontend/lib/api.ts`
+- ✅ **URL de production** : `https://boujebli-meuble-backend.onrender.com`
+- ✅ **Logs détaillés** pour le débogage
 
-### ❌ Problème Identifié
-Le problème vient du **frontend** qui ne peut pas se connecter au backend depuis le navigateur.
+## 🧪 **Tests à Effectuer**
 
-## 🛠️ Solutions à Tester
+### **Étape 1 : Vérifier la Console**
+1. Ouvrez http://localhost:3000
+2. Appuyez sur **F12** pour ouvrir les outils de développement
+3. Allez dans l'onglet **Console**
+4. Connectez-vous avec :
+   - Email : `adam.karoui51@gmail.com`
+   - Mot de passe : `11112022Ad`
+5. **Regardez les logs** dans la console
 
-### 1. Test Rapide avec Page HTML
-Ouvrez le fichier `test-browser-auth.html` dans votre navigateur :
-```bash
-# Ouvrir le fichier dans le navigateur
-file:///C:/Users/youss/Desktop/baoujebli%20meuble/frontend/test-browser-auth.html
+### **Étape 2 : Vérifier le Panneau de Débogage**
+1. Le panneau noir en haut à droite doit afficher :
+   - `isAuthenticated: ✅`
+   - `Token: ✅`
+   - `User: ✅`
+
+### **Étape 3 : Tester le Menu**
+1. **Passez la souris** sur l'icône de personne
+2. Le menu doit s'afficher
+3. **Cliquez sur "Mon Profil"** - doit aller vers `/profile`
+4. **Cliquez sur "Paramètres"** - doit aller vers `/settings`
+5. **Cliquez sur "Déconnexion"** - doit déconnecter
+
+## 🔍 **Logs à Vérifier**
+
+### **Logs de Connexion (Console)**
+```
+🔐 Tentative de connexion pour: adam.karoui51@gmail.com
+🌐 Appel API: https://boujebli-meuble-backend.onrender.com/auth/login
+📡 Réponse API: 200 OK
+✅ Connexion réussie: { access_token: "...", user: {...} }
+🔑 Token trouvé dans localStorage
+👤 Utilisateur chargé depuis localStorage: {...}
 ```
 
-### 2. Vérifier le Frontend
-Assurez-vous que le frontend démarre correctement :
-```bash
-cd frontend
-npm run dev
+### **Logs du Menu (Console)**
+```
+🔍 UserMenu Debug: { user: {...}, isAuthenticated: true, token: "...", isOpen: false }
+✅ UserMenu: Utilisateur authentifié, affichage du menu
+🖱️ Mouse Enter - Ouverture du menu
 ```
 
-### 3. Vider le Cache du Navigateur
-- **Chrome** : Ctrl+Shift+R (rechargement forcé)
-- **Firefox** : Ctrl+F5
-- **Edge** : Ctrl+Shift+R
+## ❌ **Si le Problème Persiste**
 
-### 4. Vérifier la Console du Navigateur
-1. Ouvrez les outils de développement (F12)
-2. Allez dans l'onglet "Console"
-3. Regardez les erreurs CORS ou réseau
+### **Solution 1 : Vider le Cache**
+1. Appuyez sur **Ctrl + Shift + R** pour recharger sans cache
+2. Ou allez dans **F12 > Application > Storage > Clear storage**
 
-### 5. Test Direct de l'API
-Dans la console du navigateur, testez :
-```javascript
-fetch('https://boujebli-meuble-backend.onrender.com/health')
-  .then(response => response.json())
-  .then(data => console.log('✅ API OK:', data))
-  .catch(error => console.error('❌ Erreur:', error));
-```
+### **Solution 2 : Vérifier localStorage**
+1. **F12 > Application > Local Storage**
+2. Vérifiez que vous avez :
+   - `token` : avec une valeur
+   - `user` : avec un objet JSON
 
-## 🔧 Corrections Possibles
+### **Solution 3 : Test Manuel**
+1. Ouvrez la console (F12)
+2. Tapez : `localStorage.getItem('token')`
+3. Tapez : `localStorage.getItem('user')`
+4. Les deux doivent retourner des valeurs
 
-### Problème 1: CORS
-Si vous voyez une erreur CORS, le backend doit être redéployé avec la nouvelle configuration.
+## 🚨 **Si Aucune Solution Ne Fonctionne**
 
-### Problème 2: Variables d'Environnement
-Vérifiez que le frontend utilise la bonne URL :
-```javascript
-// Dans frontend/app/services/api.ts
-const API_BASE_URL = 'https://boujebli-meuble-backend.onrender.com';
-```
+### **Dernière Solution : Reset Complet**
+1. **F12 > Application > Storage > Clear storage**
+2. **Rechargez la page** (Ctrl + R)
+3. **Recréez un compte** sur `/register`
+4. **Connectez-vous** avec le nouveau compte
 
-### Problème 3: Cache du Navigateur
-Le navigateur peut avoir mis en cache une ancienne version.
-
-### Problème 4: Réseau
-Vérifiez votre connexion internet et les pare-feu.
-
-## 📋 Checklist de Diagnostic
-
-- [ ] **Frontend démarre** : `npm run dev` fonctionne
-- [ ] **Page HTML de test** : `test-browser-auth.html` fonctionne
-- [ ] **Console navigateur** : Pas d'erreurs CORS
-- [ ] **Cache vidé** : Rechargement forcé effectué
-- [ ] **API accessible** : Test direct dans la console OK
-
-## 🚀 Étapes de Résolution
-
-### Étape 1: Test Rapide
-1. Ouvrez `test-browser-auth.html` dans le navigateur
-2. Cliquez sur "Test Santé API"
-3. Si ça fonctionne, le problème vient du frontend Next.js
-
-### Étape 2: Diagnostic Frontend
-1. Démarrez le frontend : `npm run dev`
-2. Ouvrez `http://localhost:3000`
-3. Ouvrez la console (F12)
-4. Allez sur `/login` ou `/register`
-5. Regardez les erreurs dans la console
-
-### Étape 3: Correction
-Selon l'erreur trouvée :
-- **CORS** → Redéployer le backend
-- **Cache** → Vider le cache du navigateur
-- **Réseau** → Vérifier la connectivité
-- **Code** → Corriger le code frontend
-
-## 📞 Support
+## 📞 **Informations de Debug**
 
 Si le problème persiste, fournissez :
-1. **Erreurs de la console** du navigateur
-2. **Résultat du test HTML**
-3. **URL exacte** où l'erreur se produit
-4. **Navigateur utilisé** et version
+1. **Screenshot** du panneau de débogage
+2. **Logs de la console** (F12 > Console)
+3. **Contenu de localStorage** (F12 > Application > Local Storage)
 
 ---
 
-**Status** : 🔍 **EN COURS DE DIAGNOSTIC** - Suivez les étapes ci-dessus pour identifier la cause exacte. 
+**🎯 Objectif :** L'utilisateur doit rester connecté et le menu doit s'afficher au survol ! 

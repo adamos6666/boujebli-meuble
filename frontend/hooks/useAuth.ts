@@ -65,6 +65,13 @@ export function useAuth(): UseAuthReturn {
     }
   }, []);
 
+  // Effet pour forcer la mise à jour de isAuthenticated
+  useEffect(() => {
+    if (mounted) {
+      console.log('🔄 Mise à jour isAuthenticated:', { user: !!user, token: !!token, isAuthenticated });
+    }
+  }, [user, token, mounted]);
+
   const loadUserProfile = async (authToken: string) => {
     try {
       console.log('👤 Chargement du profil utilisateur...');
@@ -133,6 +140,9 @@ export function useAuth(): UseAuthReturn {
       if (typeof window !== 'undefined') {
         localStorage.setItem('user', JSON.stringify(userInfo));
       }
+      
+      // Forcer la mise à jour de l'état
+      console.log('🔄 État après connexion:', { user: !!userInfo, token: !!accessToken, isAuthenticated: !!(userInfo && accessToken) });
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de connexion';
