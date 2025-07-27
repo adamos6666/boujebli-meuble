@@ -40,27 +40,43 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     const initializeAuth = () => {
       if (typeof window !== 'undefined') {
-        const savedToken = localStorage.getItem('token');
-        const savedUser = localStorage.getItem('user');
+        console.log('🔍 Initialisation de l\'authentification...');
         
-        console.log('🔍 Chargement depuis localStorage:', { savedToken, savedUser });
-        
-        if (savedToken && savedUser) {
-          try {
-            const userData = JSON.parse(savedUser);
-            setToken(savedToken);
-            setUser(userData);
-            console.log('🔑 Token et utilisateur chargés depuis localStorage:', { token: savedToken, user: userData });
-          } catch (error) {
-            console.error('❌ Erreur lors du parsing de l\'utilisateur:', error);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+        // Attendre un peu pour s'assurer que localStorage est disponible
+        setTimeout(() => {
+          const savedToken = localStorage.getItem('token');
+          const savedUser = localStorage.getItem('user');
+          
+          console.log('🔍 Chargement depuis localStorage:', { 
+            hasToken: !!savedToken, 
+            hasUser: !!savedUser,
+            tokenLength: savedToken?.length || 0
+          });
+          
+          if (savedToken && savedUser) {
+            try {
+              const userData = JSON.parse(savedUser);
+              console.log('👤 Données utilisateur parsées:', userData);
+              
+              setToken(savedToken);
+              setUser(userData);
+              
+              console.log('✅ Token et utilisateur chargés dans l\'état:', { 
+                token: !!savedToken, 
+                user: !!userData,
+                isAuthenticated: !!(savedToken && userData)
+              });
+            } catch (error) {
+              console.error('❌ Erreur lors du parsing de l\'utilisateur:', error);
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+            }
+          } else {
+            console.log('❌ Aucun token ou utilisateur trouvé dans localStorage');
           }
-        } else {
-          console.log('❌ Aucun token ou utilisateur trouvé dans localStorage');
-        }
-        
-        setIsLoading(false);
+          
+          setIsLoading(false);
+        }, 100); // Délai de 100ms
       }
     };
 
@@ -71,9 +87,14 @@ export function useAuth(): UseAuthReturn {
   // Effet pour forcer la mise à jour de isAuthenticated
   useEffect(() => {
     if (mounted) {
-      console.log('🔄 Mise à jour isAuthenticated:', { user: !!user, token: !!token, isAuthenticated });
+      console.log('🔄 Mise à jour isAuthenticated:', { 
+        user: !!user, 
+        token: !!token, 
+        isAuthenticated,
+        userDetails: user ? { name: user.name, email: user.email } : null
+      });
     }
-  }, [user, token, mounted]);
+  }, [user, token, mounted, isAuthenticated]);
 
   const loadUserProfile = async (authToken: string) => {
     try {
@@ -145,7 +166,11 @@ export function useAuth(): UseAuthReturn {
       }
       
       // Forcer la mise à jour de l'état
-      console.log('🔄 État après connexion:', { user: !!userInfo, token: !!accessToken, isAuthenticated: !!(userInfo && accessToken) });
+      console.log('🔄 État après connexion:', { 
+        user: !!userInfo, 
+        token: !!accessToken, 
+        isAuthenticated: !!(userInfo && accessToken) 
+      });
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de connexion';
