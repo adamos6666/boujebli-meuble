@@ -54,8 +54,10 @@ export default function UserMenu() {
   }, [user, isAuthenticated, isOpen]);
 
   useEffect(() => {
-    const savedLocale = localStorage.getItem('locale') || 'fr';
-    setLocale(savedLocale);
+    if (typeof window !== 'undefined') {
+      const savedLocale = localStorage.getItem('locale') || 'fr';
+      setLocale(savedLocale);
+    }
   }, []);
 
   useEffect(() => {
@@ -76,6 +78,9 @@ export default function UserMenu() {
     setIsOpen(false);
     router.push('/');
   };
+
+  // TEMPORAIRE: Forcer l'affichage du menu pour tester
+  const forceShowMenu = true;
 
   // Si l'utilisateur n'est pas authentifié, afficher un bouton de connexion
   if (!isAuthenticated || !user) {
@@ -129,8 +134,8 @@ export default function UserMenu() {
         </svg>
       </button>
 
-      {/* Menu déroulant */}
-      {isOpen && (
+      {/* Menu déroulant - FORCÉ pour tester */}
+      {(isOpen || forceShowMenu) && (
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
           {/* En-tête du menu */}
           <div className="px-4 py-3 border-b border-gray-200">
