@@ -26,62 +26,52 @@ export interface UseAuthReturn {
   error: string | null;
 }
 
+// Fonction pour charger les données depuis localStorage
+function loadFromLocalStorage() {
+  if (typeof window === 'undefined') {
+    return { token: null, user: null };
+  }
+  
+  try {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      const user = JSON.parse(userStr);
+      console.log('🔍 Données chargées depuis localStorage:', { token: !!token, user });
+      return { token, user };
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors du chargement depuis localStorage:', error);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+  
+  return { token: null, user: null };
+}
+
 export function useAuth(): UseAuthReturn {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Charger les données depuis localStorage immédiatement
+  const initialData = loadFromLocalStorage();
+  
+  const [user, setUser] = useState<User | null>(initialData.user);
+  const [token, setToken] = useState<string | null>(initialData.token);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // Calculer isAuthenticated basé sur user et token
   const isAuthenticated = !!(user && token);
 
-  // Charger le token et l'utilisateur depuis localStorage au démarrage
+  // Effet pour initialiser le composant
   useEffect(() => {
-    const initializeAuth = () => {
-      if (typeof window !== 'undefined') {
-        console.log('🔍 Initialisation de l\'authentification...');
-        
-        // Attendre un peu pour s'assurer que localStorage est disponible
-        setTimeout(() => {
-          const savedToken = localStorage.getItem('token');
-          const savedUser = localStorage.getItem('user');
-          
-          console.log('🔍 Chargement depuis localStorage:', { 
-            hasToken: !!savedToken, 
-            hasUser: !!savedUser,
-            tokenLength: savedToken?.length || 0
-          });
-          
-          if (savedToken && savedUser) {
-            try {
-              const userData = JSON.parse(savedUser);
-              console.log('👤 Données utilisateur parsées:', userData);
-              
-              setToken(savedToken);
-              setUser(userData);
-              
-              console.log('✅ Token et utilisateur chargés dans l\'état:', { 
-                token: !!savedToken, 
-                user: !!userData,
-                isAuthenticated: !!(savedToken && userData)
-              });
-            } catch (error) {
-              console.error('❌ Erreur lors du parsing de l\'utilisateur:', error);
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-            }
-          } else {
-            console.log('❌ Aucun token ou utilisateur trouvé dans localStorage');
-          }
-          
-          setIsLoading(false);
-        }, 100); // Délai de 100ms
-      }
-    };
-
     setMounted(true);
-    initializeAuth();
+    console.log('🔄 Hook useAuth initialisé avec:', { 
+      user: !!user, 
+      token: !!token, 
+      isAuthenticated,
+      userDetails: user ? { name: user.name, email: user.email } : null
+    });
   }, []);
 
   // Effet pour forcer la mise à jour de isAuthenticated
