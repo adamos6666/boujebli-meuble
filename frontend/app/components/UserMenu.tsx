@@ -50,17 +50,32 @@ export default function UserMenu() {
 
   // Charger les données depuis localStorage
   useEffect(() => {
+    console.log('🔄 UserMenu: Début du chargement des données...');
+    
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       const userStr = localStorage.getItem('user');
       
+      console.log('🔍 UserMenu: localStorage contient:', { 
+        hasToken: !!token, 
+        hasUser: !!userStr,
+        tokenLength: token?.length || 0
+      });
+      
       if (token && userStr) {
         try {
           const userData = JSON.parse(userStr);
+          console.log('👤 UserMenu: Données utilisateur parsées:', userData);
+          
           setLocalToken(token);
           setLocalUser(userData);
           setLocalIsAuthenticated(true);
-          console.log('✅ UserMenu: Données chargées depuis localStorage:', { user: userData, token: !!token });
+          
+          console.log('✅ UserMenu: Données chargées avec succès:', { 
+            user: userData, 
+            token: !!token,
+            isAuthenticated: true
+          });
         } catch (error) {
           console.error('❌ UserMenu: Erreur parsing user:', error);
           localStorage.removeItem('token');
@@ -75,7 +90,9 @@ export default function UserMenu() {
   // Utiliser les données locales si le hook ne fonctionne pas
   const user = localUser || hookUser;
   const isAuthenticated = localIsAuthenticated || hookIsAuthenticated;
+  
   const logout = () => {
+    console.log('🚪 UserMenu: Déconnexion...');
     hookLogout();
     setLocalUser(null);
     setLocalToken(null);
@@ -88,9 +105,9 @@ export default function UserMenu() {
     router.push('/');
   };
 
-  // Logs de débogage - avec vérification côté client
+  // Logs de débogage détaillés
   useEffect(() => {
-    console.log('🔍 UserMenu Debug:', {
+    console.log('🔍 UserMenu Debug Complet:', {
       hookUser: hookUser,
       hookIsAuthenticated: hookIsAuthenticated,
       localUser: localUser,
@@ -98,7 +115,8 @@ export default function UserMenu() {
       finalUser: user,
       finalIsAuthenticated: isAuthenticated,
       token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
-      isOpen: isOpen
+      isOpen: isOpen,
+      userRole: user?.role || 'aucun'
     });
   }, [hookUser, hookIsAuthenticated, localUser, localIsAuthenticated, user, isAuthenticated, isOpen]);
 
@@ -124,7 +142,7 @@ export default function UserMenu() {
 
   // Si l'utilisateur n'est pas authentifié, afficher un bouton de connexion
   if (!isAuthenticated || !user) {
-    console.log('❌ UserMenu: Utilisateur non authentifié');
+    console.log('❌ UserMenu: Utilisateur non authentifié - Affichage des boutons de connexion');
     return (
       <div className="flex items-center space-x-4">
         <Link 
@@ -143,7 +161,7 @@ export default function UserMenu() {
     );
   }
 
-  console.log('✅ UserMenu: Utilisateur authentifié, affichage du menu');
+  console.log('✅ UserMenu: Utilisateur authentifié - Affichage du menu pour:', user.name);
 
   return (
     <div 
@@ -182,6 +200,7 @@ export default function UserMenu() {
             <p className="text-sm font-medium text-gray-900">{t.welcome}</p>
             <p className="text-sm text-gray-500 truncate">{user.name}</p>
             <p className="text-xs text-gray-400 truncate">{user.email}</p>
+            <p className="text-xs text-blue-500">Rôle: {user.role}</p>
           </div>
 
           {/* Options du menu */}
