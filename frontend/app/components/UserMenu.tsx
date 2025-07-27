@@ -37,21 +37,70 @@ const translations = {
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [locale, setLocale] = useState('fr');
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user: hookUser, isAuthenticated: hookIsAuthenticated, logout: hookLogout } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // État local pour l'authentification
+  const [localUser, setLocalUser] = useState(null);
+  const [localToken, setLocalToken] = useState(null);
+  const [localIsAuthenticated, setLocalIsAuthenticated] = useState(false);
+
   const t = translations[locale as keyof typeof translations] || translations.fr;
+
+  // Charger les données depuis localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      
+      if (token && userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          setLocalToken(token);
+          setLocalUser(userData);
+          setLocalIsAuthenticated(true);
+          console.log('✅ UserMenu: Données chargées depuis localStorage:', { user: userData, token: !!token });
+        } catch (error) {
+          console.error('❌ UserMenu: Erreur parsing user:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } else {
+        console.log('❌ UserMenu: Aucune donnée d\'authentification trouvée');
+      }
+    }
+  }, []);
+
+  // Utiliser les données locales si le hook ne fonctionne pas
+  const user = localUser || hookUser;
+  const isAuthenticated = localIsAuthenticated || hookIsAuthenticated;
+  const logout = () => {
+    hookLogout();
+    setLocalUser(null);
+    setLocalToken(null);
+    setLocalIsAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    setIsOpen(false);
+    router.push('/');
+  };
 
   // Logs de débogage - avec vérification côté client
   useEffect(() => {
     console.log('🔍 UserMenu Debug:', {
-      user: user,
-      isAuthenticated: isAuthenticated,
+      hookUser: hookUser,
+      hookIsAuthenticated: hookIsAuthenticated,
+      localUser: localUser,
+      localIsAuthenticated: localIsAuthenticated,
+      finalUser: user,
+      finalIsAuthenticated: isAuthenticated,
       token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
       isOpen: isOpen
     });
-  }, [user, isAuthenticated, isOpen]);
+  }, [hookUser, hookIsAuthenticated, localUser, localIsAuthenticated, user, isAuthenticated, isOpen]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -72,12 +121,6 @@ export default function UserMenu() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    setIsOpen(false);
-    router.push('/');
-  };
 
   // Si l'utilisateur n'est pas authentifié, afficher un bouton de connexion
   if (!isAuthenticated || !user) {
@@ -209,7 +252,7 @@ export default function UserMenu() {
 
             {/* Déconnexion */}
             <button
-              onClick={handleLogout}
+              onClick={logout}
               className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <svg className="w-4 h-4 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
