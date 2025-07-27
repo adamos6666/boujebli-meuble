@@ -67,15 +67,20 @@ export default function UserMenu() {
     router.push('/');
   };
 
+  // Si l'utilisateur n'est pas authentifié, ne pas afficher le menu
   if (!isAuthenticated || !user) {
     return null;
   }
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div 
+      className="relative" 
+      ref={menuRef}
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
       {/* Bouton utilisateur */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
         title={`${t.welcome}, ${user.name}`}
       >

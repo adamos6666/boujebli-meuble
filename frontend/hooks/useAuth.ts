@@ -19,6 +19,7 @@ export interface UseAuthReturn {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -30,6 +31,9 @@ export function useAuth(): UseAuthReturn {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Calculer isAuthenticated basé sur user et token
+  const isAuthenticated = !!(user && token);
 
   // Charger le token depuis localStorage au démarrage
   useEffect(() => {
@@ -139,7 +143,7 @@ export function useAuth(): UseAuthReturn {
     localStorage.removeItem('token');
   };
 
-  return { user, token, isLoading, login, register, logout, error };
+  return { user, token, isLoading, isAuthenticated, login, register, logout, error };
 }
 
 // Fonction utilitaire pour ajouter le token d'authentification
