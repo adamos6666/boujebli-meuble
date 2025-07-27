@@ -38,31 +38,34 @@ export function useAuth(): UseAuthReturn {
 
   // Charger le token et l'utilisateur depuis localStorage au démarrage
   useEffect(() => {
-    setMounted(true);
-    if (typeof window !== 'undefined') {
-      const savedToken = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
-      
-      console.log('🔍 Chargement depuis localStorage:', { savedToken, savedUser });
-      
-      if (savedToken) {
-        setToken(savedToken);
-        console.log('🔑 Token trouvé dans localStorage');
+    const initializeAuth = () => {
+      if (typeof window !== 'undefined') {
+        const savedToken = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
         
-        if (savedUser) {
+        console.log('🔍 Chargement depuis localStorage:', { savedToken, savedUser });
+        
+        if (savedToken && savedUser) {
           try {
             const userData = JSON.parse(savedUser);
+            setToken(savedToken);
             setUser(userData);
-            console.log('👤 Utilisateur chargé depuis localStorage:', userData);
+            console.log('🔑 Token et utilisateur chargés depuis localStorage:', { token: savedToken, user: userData });
           } catch (error) {
             console.error('❌ Erreur lors du parsing de l\'utilisateur:', error);
+            localStorage.removeItem('token');
             localStorage.removeItem('user');
           }
+        } else {
+          console.log('❌ Aucun token ou utilisateur trouvé dans localStorage');
         }
+        
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
-    }
+    };
+
+    setMounted(true);
+    initializeAuth();
   }, []);
 
   // Effet pour forcer la mise à jour de isAuthenticated
