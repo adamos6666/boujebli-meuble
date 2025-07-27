@@ -20,13 +20,20 @@ export class ProduitStandardService {
   }
 
   async findAll(langue?: string): Promise<ProduitStandard[]> {
-    const where = langue ? {
-      langues: {
-        has: langue
-      }
-    } : {};
-    
-    return prisma.produitStandard.findMany({ where });
+    try {
+      const where = langue ? {
+        langues: {
+          has: langue
+        }
+      } : {};
+      
+      const produits = await prisma.produitStandard.findMany({ where });
+      console.log(`✅ ${produits.length} produits trouvés${langue ? ` pour la langue ${langue}` : ''}`);
+      return produits;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des produits:', error);
+      throw new Error('Erreur de base de données lors de la récupération des produits');
+    }
   }
 
   async findOne(id: number): Promise<ProduitStandard> {

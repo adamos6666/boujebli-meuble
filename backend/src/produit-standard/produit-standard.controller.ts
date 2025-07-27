@@ -15,7 +15,34 @@ export class ProduitStandardController {
   @ApiQuery({ name: 'langue', required: false, description: 'Filtrer par langue' })
   @ApiResponse({ status: 200, description: 'Liste des produits standards' })
   async findAll(@Query('langue') langue?: string) {
-    return this.produitStandardService.findAll(langue);
+    try {
+      console.log(`🔍 Recherche de produits${langue ? ` pour la langue: ${langue}` : ''}`);
+      const produits = await this.produitStandardService.findAll(langue);
+      console.log(`✅ ${produits.length} produits retournés`);
+      return produits;
+    } catch (error) {
+      console.error('❌ Erreur dans le contrôleur produit-standard:', error);
+      throw error;
+    }
+  }
+
+  @Get('test')
+  @ApiOperation({ summary: 'Test de la connexion à la base de données' })
+  async testConnection() {
+    try {
+      const count = await this.produitStandardService.findAll();
+      return {
+        message: 'Connexion à la base de données réussie',
+        productCount: count.length,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        message: 'Erreur de connexion à la base de données',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
   @Get(':id')

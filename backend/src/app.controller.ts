@@ -17,4 +17,18 @@ export class AppController {
       timestamp: new Date().toISOString(),
     };
   }
+
+  @Get('test')
+  getTest(): { message: string; routes: string[] } {
+    return {
+      message: 'Backend is working!',
+      routes: [
+        '/health',
+        '/produit-standard',
+        '/auth/login',
+        '/auth/register',
+        '/traduction'
+      ]
+    };
+  }
 }
