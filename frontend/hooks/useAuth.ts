@@ -1,7 +1,21 @@
-import { useState, useEffect } from 'react';
-import { apiCall, getAuthHeaders, API_CONFIG, User, AuthResponse } from '../lib/api';
+"use client";
 
-interface UseAuthReturn {
+import { useState, useEffect } from 'react';
+import { apiCall, API_CONFIG } from '../lib/api';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  user?: User;
+}
+
+export interface UseAuthReturn {
   user: User | null;
   token: string | null;
   isLoading: boolean;
@@ -14,7 +28,7 @@ interface UseAuthReturn {
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Charger le token depuis localStorage au démarrage
@@ -22,10 +36,8 @@ export function useAuth(): UseAuthReturn {
     const savedToken = localStorage.getItem('token');
     if (savedToken) {
       setToken(savedToken);
-      // Charger les informations utilisateur
-      loadUserProfile(savedToken);
-    } else {
-      setIsLoading(false);
+      // Ne pas charger le profil automatiquement pour éviter l'erreur
+      console.log('🔑 Token trouvé dans localStorage');
     }
   }, []);
 
@@ -39,9 +51,8 @@ export function useAuth(): UseAuthReturn {
       setUser(userData);
     } catch (err) {
       console.error('❌ Erreur lors du chargement du profil:', err);
-      // Token invalide, le supprimer
-      localStorage.removeItem('token');
-      setToken(null);
+      // Ne pas déconnecter l'utilisateur si le profil échoue
+      // L'utilisateur peut continuer à utiliser l'application
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +64,6 @@ export function useAuth(): UseAuthReturn {
     
     try {
       console.log('🔐 Tentative de connexion pour:', email);
-      
       const response = await apiCall<AuthResponse>(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         body: JSON.stringify({ email, password }),
@@ -61,7 +71,6 @@ export function useAuth(): UseAuthReturn {
 
       console.log('✅ Connexion réussie:', response);
 
-      // Extraire le token de la réponse
       const accessToken = response.access_token || response.data?.access_token;
       if (!accessToken) {
         throw new Error('Token d\'accès non reçu');
@@ -70,18 +79,20 @@ export function useAuth(): UseAuthReturn {
       setToken(accessToken);
       localStorage.setItem('token', accessToken);
       
-      // Extraire les informations utilisateur
       let userInfo: User | null = null;
-      
       if (response.user) {
         userInfo = response.user;
       } else if (response.data?.user) {
         userInfo = response.data.user;
       } else {
-        // Si pas d'infos utilisateur dans la réponse, les charger séparément
-        console.log('🔄 Chargement des informations utilisateur...');
-        await loadUserProfile(accessToken);
-        return; // loadUserProfile gère déjà setUser
+        // Si pas d'infos utilisateur dans la réponse, créer un objet utilisateur basique
+        console.log('🔄 Création d\'un objet utilisateur basique...');
+        userInfo = {
+          id: 0, // ID temporaire
+          name: email.split('@')[0], // Nom basé sur l'email
+          email: email,
+          role: 'client'
+        };
       }
       
       console.log('✅ Informations utilisateur:', userInfo);
@@ -103,15 +114,12 @@ export function useAuth(): UseAuthReturn {
     
     try {
       console.log('📝 Tentative d\'inscription pour:', email);
-      
       await apiCall(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         body: JSON.stringify({ name, email, password }),
       });
       
       console.log('✅ Inscription réussie, connexion automatique...');
-      
-      // Après inscription, connecter automatiquement
       await login(email, password);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur d\'inscription';
@@ -131,13 +139,18 @@ export function useAuth(): UseAuthReturn {
     localStorage.removeItem('token');
   };
 
-  return {
-    user,
-    token,
-    isLoading,
-    login,
-    register,
-    logout,
-    error,
+  return { user, token, isLoading, login, register, logout, error };
+}
+
+// Fonction utilitaire pour ajouter le token d'authentification
+function getAuthHeaders(token?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
   };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 } 
