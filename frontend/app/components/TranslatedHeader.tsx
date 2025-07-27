@@ -102,7 +102,7 @@ export default function TranslatedHeader() {
           {/* Search Bar, User Menu, and Language Switcher */}
           <div className="flex items-center space-x-4">
             <SearchBar />
-            <TestMenu />
+            <UserMenu />
             <LanguageSwitcher />
           </div>
 

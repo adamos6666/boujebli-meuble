@@ -79,9 +79,6 @@ export default function UserMenu() {
     router.push('/');
   };
 
-  // TEMPORAIRE: Forcer l'affichage du menu pour tester
-  const forceShowMenu = true;
-
   // Si l'utilisateur n'est pas authentifié, afficher un bouton de connexion
   if (!isAuthenticated || !user) {
     console.log('❌ UserMenu: Utilisateur non authentifié');
@@ -134,8 +131,8 @@ export default function UserMenu() {
         </svg>
       </button>
 
-      {/* Menu déroulant - FORCÉ pour tester */}
-      {(isOpen || forceShowMenu) && (
+      {/* Menu déroulant */}
+      {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
           {/* En-tête du menu */}
           <div className="px-4 py-3 border-b border-gray-200">

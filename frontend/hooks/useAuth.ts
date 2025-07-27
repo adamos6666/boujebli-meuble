@@ -29,22 +29,39 @@ export interface UseAuthReturn {
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // Calculer isAuthenticated basé sur user et token
   const isAuthenticated = !!(user && token);
 
-  // Charger le token depuis localStorage au démarrage - côté client seulement
+  // Charger le token et l'utilisateur depuis localStorage au démarrage
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined') {
       const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      
+      console.log('🔍 Chargement depuis localStorage:', { savedToken, savedUser });
+      
       if (savedToken) {
         setToken(savedToken);
         console.log('🔑 Token trouvé dans localStorage');
+        
+        if (savedUser) {
+          try {
+            const userData = JSON.parse(savedUser);
+            setUser(userData);
+            console.log('👤 Utilisateur chargé depuis localStorage:', userData);
+          } catch (error) {
+            console.error('❌ Erreur lors du parsing de l\'utilisateur:', error);
+            localStorage.removeItem('user');
+          }
+        }
       }
+      
+      setIsLoading(false);
     }
   }, []);
 
@@ -56,6 +73,11 @@ export function useAuth(): UseAuthReturn {
       });
       console.log('✅ Profil utilisateur chargé:', userData);
       setUser(userData);
+      
+      // Sauvegarder l'utilisateur dans localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
     } catch (err) {
       console.error('❌ Erreur lors du chargement du profil:', err);
       // Ne pas déconnecter l'utilisateur si le profil échoue
@@ -107,6 +129,11 @@ export function useAuth(): UseAuthReturn {
       console.log('✅ Informations utilisateur:', userInfo);
       setUser(userInfo);
       
+      // Sauvegarder l'utilisateur dans localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(userInfo));
+      }
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de connexion';
       console.error('❌ Erreur de connexion:', errorMessage);
@@ -147,6 +174,7 @@ export function useAuth(): UseAuthReturn {
     setError(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
   };
 
