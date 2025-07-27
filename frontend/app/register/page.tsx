@@ -1,123 +1,212 @@
 "use client";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const translations = {
   fr: {
     title: "Créer un compte",
-    name: "Nom",
-    email: "Email",
+    subtitle: "Rejoignez Boujebli Meuble",
+    name: "Nom complet",
+    email: "Adresse e-mail",
     password: "Mot de passe",
-    submit: "S'inscrire",
-    success: "Inscription réussie !",
-    errors: {
-      name: "Le nom est requis",
-      email: "Email invalide",
-      password: "Le mot de passe doit contenir au moins 6 caractères"
-    }
+    submit: "Créer votre compte",
+    loading: "Création...",
+    hasAccount: "Vous avez déjà un compte ?",
+    login: "Se connecter",
+    or: "ou"
   },
   en: {
-    title: "Register",
-    name: "Name",
-    email: "Email",
+    title: "Create Account",
+    subtitle: "Join Boujebli Meuble",
+    name: "Full Name",
+    email: "Email address",
     password: "Password",
-    submit: "Register",
-    success: "Registration successful!",
-    errors: {
-      name: "Name is required",
-      email: "Invalid email",
-      password: "Password must be at least 6 characters"
-    }
+    submit: "Create your account",
+    loading: "Creating...",
+    hasAccount: "Already have an account?",
+    login: "Sign in",
+    or: "or"
   },
   ar: {
     title: "إنشاء حساب",
-    name: "الاسم",
-    email: "البريد الإلكتروني",
+    subtitle: "انضم إلى بوجبلي موبل",
+    name: "الاسم الكامل",
+    email: "عنوان البريد الإلكتروني",
     password: "كلمة المرور",
-    submit: "تسجيل",
-    success: "تم التسجيل بنجاح!",
-    errors: {
-      name: "الاسم مطلوب",
-      email: "البريد الإلكتروني غير صالح",
-      password: "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل"
-    }
+    submit: "إنشاء حسابك",
+    loading: "جاري الإنشاء...",
+    hasAccount: "لديك حساب بالفعل؟",
+    login: "تسجيل الدخول",
+    or: "أو"
   }
 };
 
-type FormData = {
-  name: string;
-  email: string;
-  password: string;
-};
+const schema = z.object({
+  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  email: z.string().email("Adresse e-mail invalide"),
+  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+});
+
+type FormData = z.infer<typeof schema>;
 
 export default function RegisterPage() {
-  const locale = typeof window !== "undefined" ? (window.location.pathname.split("/")[1] || "fr") : "fr";
-  const t = translations[locale] || translations.fr;
-  const [success, setSuccess] = useState(false);
+  const [locale, setLocale] = useState('fr');
+  const t = translations[locale as keyof typeof translations] || translations.fr;
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const schema = z.object({
-    name: z.string().min(1, t.errors.name),
-    email: z.string().email(t.errors.email),
-    password: z.string().min(6, t.errors.password)
-  });
+  useEffect(() => {
+    const savedLocale = localStorage.getItem('locale') || 'fr';
+    setLocale(savedLocale);
+  }, []);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema)
   });
 
-  const onSubmit = (data: FormData) => {
-    setSuccess(true);
-    // Ici, tu pourrais envoyer les données à l'API
+  const onSubmit = async (data: FormData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      // Ici, tu pourrais envoyer les données à l'API
+      console.log('Registration data:', data);
+      // Simuler un délai
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      router.push('/login');
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError('Erreur lors de l\'inscription');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <section className="max-w-md mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-4">{t.title}</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <div>
-          <label className="block mb-1">{t.name}</label>
-          <input
-            className="w-full border rounded px-3 py-2"
-            {...register("name")}
-            type="text"
-            autoComplete="name"
-          />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Brand */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Boujebli Meuble</h1>
+            <p className="text-gray-600">{t.subtitle}</p>
+          </div>
+
+          {/* Form Card */}
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Name Field */}
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  {t.name}
+                </label>
+                <input
+                  {...register("name")}
+                  type="text"
+                  id="name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Votre nom complet"
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                )}
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  {t.email}
+                </label>
+                <input
+                  {...register("email")}
+                  type="email"
+                  id="email"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="votre@email.com"
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  {t.password}
+                </label>
+                <input
+                  {...register("password")}
+                  type="password"
+                  id="password"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="••••••••"
+                />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                )}
+              </div>
+
+              {/* Register Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? t.loading : t.submit}
+              </button>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
+            </form>
+
+            {/* Divider */}
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">{t.or}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Login Link */}
+            <div className="mt-6 text-center">
+              <p className="text-gray-600">
+                {t.hasAccount}{" "}
+                <Link href="/login" className="text-blue-600 hover:text-blue-500 font-semibold">
+                  {t.login}
+                </Link>
+              </p>
+            </div>
+          </div>
+
+          {/* Back to Home */}
+          <div className="text-center mt-6">
+            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">
+              ← Retour à l'accueil
+            </Link>
+          </div>
         </div>
-        <div>
-          <label className="block mb-1">{t.email}</label>
-          <input
-            className="w-full border rounded px-3 py-2"
-            {...register("email")}
-            type="email"
-            autoComplete="email"
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+      </div>
+
+      {/* Decorative Element */}
+      <div className="relative h-32 bg-white overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gray-200 rounded-full transform translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute bottom-4 left-4 w-8 h-8 bg-black rounded-full flex items-center justify-center">
+          <span className="text-white text-sm font-bold">N</span>
         </div>
-        <div>
-          <label className="block mb-1">{t.password}</label>
-          <input
-            className="w-full border rounded px-3 py-2"
-            {...register("password")}
-            type="password"
-            autoComplete="new-password"
-          />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-        </div>
-        <button
-          type="submit"
-          className="bg-black text-white px-4 py-2 rounded mt-2 hover:bg-gray-800"
-        >
-          {t.submit}
-        </button>
-        {success && <p className="text-green-600 mt-2">{t.success}</p>}
-      </form>
-    </section>
+      </div>
+    </div>
   );
 } 
