@@ -167,19 +167,15 @@ export default function UserMenu() {
     <div 
       className="relative" 
       ref={menuRef}
-      onMouseEnter={() => {
-        console.log('🖱️ Mouse Enter - Ouverture du menu');
-        setIsOpen(true);
-      }}
-      onMouseLeave={() => {
-        console.log('🖱️ Mouse Leave - Fermeture du menu');
-        setIsOpen(false);
-      }}
     >
       {/* Bouton utilisateur */}
       <button
         className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
         title={`${t.welcome}, ${user.name}`}
+        onMouseEnter={() => {
+          console.log('🖱️ Mouse Enter - Ouverture du menu');
+          setIsOpen(true);
+        }}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -194,7 +190,17 @@ export default function UserMenu() {
 
       {/* Menu déroulant */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+        <div 
+          className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+          onMouseEnter={() => {
+            console.log('🖱️ Mouse Enter sur menu - Garder ouvert');
+            setIsOpen(true);
+          }}
+          onMouseLeave={() => {
+            console.log('🖱️ Mouse Leave sur menu - Fermer');
+            setIsOpen(false);
+          }}
+        >
           {/* En-tête du menu */}
           <div className="px-4 py-3 border-b border-gray-200">
             <p className="text-sm font-medium text-gray-900">{t.welcome}</p>

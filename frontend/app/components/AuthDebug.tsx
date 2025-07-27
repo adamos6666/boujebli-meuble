@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useState, useEffect } from 'react';
 
 export default function AuthDebug() {
-  const { user, isAuthenticated, token, isLoading } = useAuth();
+  const { user: hookUser, isAuthenticated: hookIsAuthenticated, token: hookToken, isLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [debugInfo, setDebugInfo] = useState({
     isAuthenticated: false,
@@ -11,7 +11,8 @@ export default function AuthDebug() {
     token: null,
     user: null,
     localStorageToken: null,
-    localStorageUser: null
+    localStorageUser: null,
+    localIsAuthenticated: false
   });
 
   useEffect(() => {
@@ -23,16 +24,34 @@ export default function AuthDebug() {
       const localStorageToken = localStorage.getItem('token');
       const localStorageUser = localStorage.getItem('user');
       
+      let localIsAuthenticated = false;
+      let localUser = null;
+      
+      if (localStorageToken && localStorageUser) {
+        try {
+          localUser = JSON.parse(localStorageUser);
+          localIsAuthenticated = true;
+        } catch (error) {
+          console.error('❌ Erreur parsing localStorage user:', error);
+        }
+      }
+      
+      // Utiliser les données locales si le hook ne fonctionne pas
+      const finalUser = localUser || hookUser;
+      const finalToken = localStorageToken || hookToken;
+      const finalIsAuthenticated = localIsAuthenticated || hookIsAuthenticated;
+      
       setDebugInfo({
-        isAuthenticated: isAuthenticated,
+        isAuthenticated: finalIsAuthenticated,
         isLoading: isLoading,
-        token: token,
-        user: user,
+        token: finalToken,
+        user: finalUser,
         localStorageToken: localStorageToken,
-        localStorageUser: localStorageUser ? JSON.parse(localStorageUser) : null
+        localStorageUser: localUser,
+        localIsAuthenticated: localIsAuthenticated
       });
     }
-  }, [mounted, isAuthenticated, isLoading, token, user]);
+  }, [mounted, hookUser, hookIsAuthenticated, hookToken, isLoading]);
 
   if (!mounted) {
     return null;
@@ -48,6 +67,7 @@ export default function AuthDebug() {
         <p>Token (localStorage): {debugInfo.localStorageToken ? '✅' : '❌'}</p>
         <p>User (hook): {debugInfo.user ? '✅' : '❌'}</p>
         <p>User (localStorage): {debugInfo.localStorageUser ? '✅' : '❌'}</p>
+        <p>Local Auth: {debugInfo.localIsAuthenticated ? '✅' : '❌'}</p>
         
         {debugInfo.user && (
           <div className="mt-2 p-2 bg-gray-800 rounded">
