@@ -105,11 +105,11 @@ export default function KitchensPage() {
   // Récupérer les produits de cuisine depuis le backend
   const { produits, loading, error } = useProduits(locale);
   
-  // Filtrer seulement les cuisines
-  const cuisines = produits.filter(product => 
+  // Filtrer seulement les cuisines - s'assurer que produits est un tableau
+  const cuisines = Array.isArray(produits) ? produits.filter(product => 
     product.titre.toLowerCase().includes('cuisine') || 
     product.titre.toLowerCase().includes('kitchen')
-  );
+  ) : [];
 
   if (loading) {
     return (
@@ -159,106 +159,60 @@ export default function KitchensPage() {
         </div>
       </div>
 
-      {/* Collections Grid */}
+      {/* Products Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {kitchenCollections.map((collection) => (
-            <div key={collection.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-              <div className="relative">
-                <img
-                  src={collection.image}
-                  alt={collection.name}
-                  className="w-full h-64 object-cover"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <h3 className="text-3xl font-bold text-white">{collection.name}</h3>
-                </div>
-              </div>
-              
-              <div className="p-8">
-                <h4 className="text-xl font-bold text-gray-900 mb-4">{collection.name}</h4>
-                <p className="text-gray-600 mb-6">{collection.description}</p>
-                
-                <div className="mb-6">
-                  <h5 className="font-semibold text-gray-900 mb-3">Caractéristiques :</h5>
-                  <ul className="space-y-2">
-                    {collection.features.map((feature, index) => (
-                      <li key={index} className="flex items-center text-gray-600">
-                        <svg className="w-4 h-4 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className="flex space-x-4">
-                  <button className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200">
-                    {translations.viewCollection}
-                  </button>
-                  <button className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors duration-200">
-                    {translations.requestQuote}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Produits de cuisine du backend */}
-      {cuisines.length > 0 && (
-        <div className="bg-white py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Nos cuisines disponibles
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Découvrez nos créations de cuisines sur mesure
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cuisines.map((cuisine) => (
-                <div key={cuisine.id} className="bg-gray-50 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                  <div className="relative">
-                    <img
-                      src={cuisine.image || "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop"}
-                      alt={cuisine.titre}
-                      className="w-full h-48 object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop";
-                      }}
-                    />
-                    <div className="absolute top-4 right-4">
-                      <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        Sur devis
-                      </span>
-                    </div>
+        {cuisines.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {cuisines.map((cuisine) => (
+              <div key={cuisine.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div className="relative">
+                  <img
+                    src={cuisine.image || '/images/placeholder.jpg'}
+                    alt={cuisine.titre}
+                    className="w-full h-64 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = '/images/placeholder.jpg';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                    <h3 className="text-2xl font-bold text-white">{cuisine.titre}</h3>
                   </div>
+                </div>
+                
+                <div className="p-6">
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">{cuisine.titre}</h4>
+                  <p className="text-gray-600 mb-4 line-clamp-3">{cuisine.description}</p>
                   
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{cuisine.titre}</h3>
-                    <p className="text-gray-600 mb-4 line-clamp-3">{cuisine.description}</p>
-                    
-                    <div className="flex space-x-3">
-                      <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200">
-                        {translations.viewCollection}
-                      </button>
-                      <button className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200">
-                        {translations.requestQuote}
-                      </button>
-                    </div>
+                  <div className="flex space-x-3">
+                    <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200">
+                      {translations.viewCollection}
+                    </button>
+                    <button className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors duration-200">
+                      {translations.requestQuote}
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-16">
+            <div className="bg-gray-100 rounded-full p-8 mx-auto mb-6 w-24 h-24 flex items-center justify-center">
+              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">{translations.noKitchens}</h3>
+            <p className="text-gray-600 mb-6">Aucune cuisine n'est disponible pour le moment.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              Actualiser
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Features Section */}
       <div className="bg-white py-16">

@@ -31,12 +31,14 @@ export function useAuth(): UseAuthReturn {
 
   const loadUserProfile = async (authToken: string) => {
     try {
+      console.log('👤 Chargement du profil utilisateur...');
       const userData = await apiCall<User>(API_CONFIG.ENDPOINTS.AUTH.PROFILE, {
         headers: getAuthHeaders(authToken),
       });
+      console.log('✅ Profil utilisateur chargé:', userData);
       setUser(userData);
     } catch (err) {
-      console.error('Erreur lors du chargement du profil:', err);
+      console.error('❌ Erreur lors du chargement du profil:', err);
       // Token invalide, le supprimer
       localStorage.removeItem('token');
       setToken(null);
@@ -50,22 +52,45 @@ export function useAuth(): UseAuthReturn {
     setError(null);
     
     try {
+      console.log('🔐 Tentative de connexion pour:', email);
+      
       const response = await apiCall<AuthResponse>(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
 
-      setToken(response.access_token);
-      localStorage.setItem('token', response.access_token);
-      
-      // Charger les informations utilisateur
-      if (response.user) {
-        setUser(response.user);
-      } else {
-        await loadUserProfile(response.access_token);
+      console.log('✅ Connexion réussie:', response);
+
+      // Extraire le token de la réponse
+      const accessToken = response.access_token || response.data?.access_token;
+      if (!accessToken) {
+        throw new Error('Token d\'accès non reçu');
       }
+
+      setToken(accessToken);
+      localStorage.setItem('token', accessToken);
+      
+      // Extraire les informations utilisateur
+      let userInfo: User | null = null;
+      
+      if (response.user) {
+        userInfo = response.user;
+      } else if (response.data?.user) {
+        userInfo = response.data.user;
+      } else {
+        // Si pas d'infos utilisateur dans la réponse, les charger séparément
+        console.log('🔄 Chargement des informations utilisateur...');
+        await loadUserProfile(accessToken);
+        return; // loadUserProfile gère déjà setUser
+      }
+      
+      console.log('✅ Informations utilisateur:', userInfo);
+      setUser(userInfo);
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de connexion');
+      const errorMessage = err instanceof Error ? err.message : 'Erreur de connexion';
+      console.error('❌ Erreur de connexion:', errorMessage);
+      setError(errorMessage);
       throw err;
     } finally {
       setIsLoading(false);
@@ -77,15 +102,21 @@ export function useAuth(): UseAuthReturn {
     setError(null);
     
     try {
+      console.log('📝 Tentative d\'inscription pour:', email);
+      
       await apiCall(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         body: JSON.stringify({ name, email, password }),
       });
       
+      console.log('✅ Inscription réussie, connexion automatique...');
+      
       // Après inscription, connecter automatiquement
       await login(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur d\'inscription');
+      const errorMessage = err instanceof Error ? err.message : 'Erreur d\'inscription';
+      console.error('❌ Erreur d\'inscription:', errorMessage);
+      setError(errorMessage);
       throw err;
     } finally {
       setIsLoading(false);
@@ -93,6 +124,7 @@ export function useAuth(): UseAuthReturn {
   };
 
   const logout = () => {
+    console.log('🚪 Déconnexion de l\'utilisateur');
     setUser(null);
     setToken(null);
     setError(null);

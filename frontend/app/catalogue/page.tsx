@@ -1,6 +1,7 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useHeaderTranslations } from '../hooks/useHeaderTranslations';
+import { useProduits } from '../hooks/useProduits';
 
 const catalogueTranslations = {
   fr: {
@@ -47,74 +48,6 @@ const catalogueTranslations = {
   },
 };
 
-// Données de produits simulées
-const products = [
-  {
-    id: 1,
-    name: "Cuisine Vintage",
-    category: "kitchens",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Cuisine élégante style vintage avec finitions soignées",
-    price: "Sur devis"
-  },
-  {
-    id: 2,
-    name: "Cuisine Velvety",
-    category: "kitchens",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Cuisine moderne avec revêtement velours",
-    price: "Sur devis"
-  },
-  {
-    id: 3,
-    name: "Porte Chêne Intérieur",
-    category: "doors",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Porte intérieure en chêne massif",
-    price: "Sur devis"
-  },
-  {
-    id: 4,
-    name: "Dressing à la Française",
-    category: "dressing",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Dressing élégant style français",
-    price: "Sur devis"
-  },
-  {
-    id: 5,
-    name: "Meuble TV",
-    category: "furniture",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Meuble TV moderne et fonctionnel",
-    price: "Sur devis"
-  },
-  {
-    id: 6,
-    name: "Cuisine Eternal Shine",
-    category: "kitchens",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Cuisine avec finitions brillantes",
-    price: "Sur devis"
-  },
-  {
-    id: 7,
-    name: "Porte Pivot Extérieur",
-    category: "doors",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Porte extérieure à pivot",
-    price: "Sur devis"
-  },
-  {
-    id: 8,
-    name: "Dressing Coulissant",
-    category: "dressing",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    description: "Dressing avec portes coulissantes",
-    price: "Sur devis"
-  }
-];
-
 export default function CataloguePage() {
   const { translations: headerTranslations } = useHeaderTranslations();
   const [locale] = useState(() => {
@@ -125,16 +58,40 @@ export default function CataloguePage() {
   });
   const translations = catalogueTranslations[locale as keyof typeof catalogueTranslations] || catalogueTranslations.fr;
 
+  // Récupérer les produits depuis le backend
+  const { produits, loading, error } = useProduits(locale);
+  
+  // S'assurer que produits est un tableau
+  const produitsArray = Array.isArray(produits) ? produits : [];
+
   const [activeFilter, setActiveFilter] = useState('all');
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [filteredProducts, setFilteredProducts] = useState(produitsArray);
+
+  // Mettre à jour les produits filtrés quand les produits changent
+  useEffect(() => {
+    if (activeFilter === 'all') {
+      setFilteredProducts(produitsArray);
+    } else {
+      setFilteredProducts(produitsArray.filter(product => {
+        const titre = product.titre.toLowerCase();
+        switch (activeFilter) {
+          case 'kitchens':
+            return titre.includes('cuisine') || titre.includes('kitchen');
+          case 'doors':
+            return titre.includes('porte') || titre.includes('door');
+          case 'dressing':
+            return titre.includes('dressing') || titre.includes('wardrobe');
+          case 'furniture':
+            return titre.includes('meuble') || titre.includes('furniture');
+          default:
+            return true;
+        }
+      }));
+    }
+  }, [produitsArray, activeFilter]);
 
   const handleFilter = (category: string) => {
     setActiveFilter(category);
-    if (category === 'all') {
-      setFilteredProducts(products);
-    } else {
-      setFilteredProducts(products.filter(product => product.category === category));
-    }
   };
 
   return (
@@ -238,9 +195,12 @@ export default function CataloguePage() {
                   <p className="text-gray-600 mb-4">{product.description}</p>
                   
                   <div className="flex space-x-3">
-                    <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200">
-                      {translations.viewDetails}
-                    </button>
+                                                    <a
+                                  href={`/produits/${product.id}`}
+                                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 text-center"
+                                >
+                                  {translations.viewDetails}
+                                </a>
                     <button className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200">
                       {translations.requestQuote}
                     </button>

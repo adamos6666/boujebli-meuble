@@ -2,6 +2,7 @@
 import { useHeaderTranslations } from '../hooks/useHeaderTranslations';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
+import UserMenu from './UserMenu';
 
 export default function TranslatedHeader() {
   const { translations } = useHeaderTranslations();
@@ -97,9 +98,10 @@ export default function TranslatedHeader() {
             </a>
           </nav>
 
-          {/* Search Bar, Person Icon, and Language Switcher */}
+          {/* Search Bar, User Menu, and Language Switcher */}
           <div className="flex items-center space-x-4">
             <SearchBar />
+            <UserMenu />
             <LanguageSwitcher />
           </div>
 

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -56,8 +57,7 @@ type FormData = z.infer<typeof schema>;
 export default function RegisterPage() {
   const [locale, setLocale] = useState('fr');
   const t = translations[locale as keyof typeof translations] || translations.fr;
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { register: registerUser, isLoading, error } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -71,18 +71,10 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      setIsLoading(true);
-      setError(null);
-      // Ici, tu pourrais envoyer les données à l'API
-      console.log('Registration data:', data);
-      // Simuler un délai
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push('/login');
+      await registerUser(data.name, data.email, data.password);
+      router.push('/');
     } catch (error) {
       console.error('Registration error:', error);
-      setError('Erreur lors de l\'inscription');
-    } finally {
-      setIsLoading(false);
     }
   };
 

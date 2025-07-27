@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import TranslatedHeader from "./components/TranslatedHeader";
 import Footer from "./components/Footer";
+import { AccessibilityEnhancer } from "./components/AccessibilityEnhancer";
+import { PerformanceMonitor } from "./components/PerformanceMonitor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <TranslatedHeader />
         <main>{children}</main>
         <Footer />
+        <AccessibilityEnhancer />
+        <PerformanceMonitor />
       </body>
     </html>
   );

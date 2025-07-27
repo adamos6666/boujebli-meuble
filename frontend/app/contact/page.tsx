@@ -82,9 +82,27 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logique d'envoi du formulaire
+    
+    // Validation basique
+    if (!formData.name || !formData.email || !formData.message) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    
+    // Simulation d'envoi
     console.log('Formulaire soumis:', formData);
+    
+    // Message de succès
     alert(translations.formSuccess);
+    
+    // Réinitialiser le formulaire
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: ''
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

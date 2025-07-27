@@ -1,6 +1,6 @@
 // Configuration API pour le frontend
 export const API_CONFIG = {
-  BASE_URL: 'https://boujebli-meuble-backend.onrender.com',
+  BASE_URL: 'https://boujebli-meuble-backend.onrender.com', // Utiliser l'API de production temporairement
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/auth/login',
@@ -58,6 +58,8 @@ export async function apiCall<T>(
 ): Promise<T> {
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
   
+  console.log('🌐 Appel API:', url);
+  
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
@@ -66,12 +68,17 @@ export async function apiCall<T>(
     ...options,
   });
 
+  console.log('📡 Réponse API:', response.status, response.statusText);
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    console.error('❌ Erreur API:', errorData);
     throw new Error(errorData.message || `Erreur API: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('✅ Données reçues:', data);
+  return data;
 }
 
 // Fonction pour ajouter le token d'authentification

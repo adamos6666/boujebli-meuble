@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://boujebli-meuble-backend.onrender.com';
 
 export interface ProduitStandard {
   id: number;
@@ -67,7 +67,17 @@ class ApiService {
   // Produits Standards
   async getProduitsStandards(langue?: string): Promise<ProduitStandard[]> {
     const params = langue ? `?langue=${langue}` : '';
-    return this.request<ProduitStandard[]>(`/produit-standard${params}`);
+    const response = await this.request<any>(`/produit-standard${params}`);
+    
+    // Extraire le tableau produits de la réponse wrapper
+    if (response && response.produits && Array.isArray(response.produits)) {
+      return response.produits;
+    } else if (Array.isArray(response)) {
+      return response;
+    } else {
+      console.warn('⚠️ Format de réponse inattendu:', response);
+      return [];
+    }
   }
 
   async getProduitStandard(id: number): Promise<ProduitStandard> {
@@ -121,8 +131,8 @@ class ApiService {
   }
 
   // Auth
-  async login(email: string, password: string): Promise<{ access_token: string; refresh_token: string }> {
-    return this.request<{ access_token: string; refresh_token: string }>('/auth/login', {
+  async login(email: string, password: string): Promise<{ access_token: string }> {
+    return this.request<{ access_token: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -135,8 +145,8 @@ class ApiService {
     });
   }
 
-  async refreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
-    return this.request<{ access_token: string; refresh_token: string }>('/auth/refresh', {
+  async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
+    return this.request<{ access_token: string }>('/auth/refresh', {
       method: 'POST',
       body: JSON.stringify({ refresh_token: refreshToken }),
     });

@@ -11,7 +11,7 @@ export default function TestApiPage() {
     const testApi = async () => {
       try {
         // Test de la route health
-        const healthResponse = await fetch('http://localhost:3000/health');
+        const healthResponse = await fetch('http://localhost:3001/health');
         if (healthResponse.ok) {
           const healthData = await healthResponse.json();
           setStatus(`API OK - ${healthData.status} (${healthData.timestamp})`);
