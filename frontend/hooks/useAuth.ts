@@ -31,17 +31,20 @@ export function useAuth(): UseAuthReturn {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Calculer isAuthenticated basé sur user et token
   const isAuthenticated = !!(user && token);
 
-  // Charger le token depuis localStorage au démarrage
+  // Charger le token depuis localStorage au démarrage - côté client seulement
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-      setToken(savedToken);
-      // Ne pas charger le profil automatiquement pour éviter l'erreur
-      console.log('🔑 Token trouvé dans localStorage');
+    setMounted(true);
+    if (typeof window !== 'undefined') {
+      const savedToken = localStorage.getItem('token');
+      if (savedToken) {
+        setToken(savedToken);
+        console.log('🔑 Token trouvé dans localStorage');
+      }
     }
   }, []);
 
@@ -81,7 +84,9 @@ export function useAuth(): UseAuthReturn {
       }
 
       setToken(accessToken);
-      localStorage.setItem('token', accessToken);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', accessToken);
+      }
       
       let userInfo: User | null = null;
       if (response.user) {
@@ -140,8 +145,24 @@ export function useAuth(): UseAuthReturn {
     setUser(null);
     setToken(null);
     setError(null);
-    localStorage.removeItem('token');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
   };
+
+  // Ne pas retourner les valeurs pendant le rendu côté serveur
+  if (!mounted) {
+    return {
+      user: null,
+      token: null,
+      isLoading: true,
+      isAuthenticated: false,
+      login: async () => {},
+      register: async () => {},
+      logout: () => {},
+      error: null
+    };
+  }
 
   return { user, token, isLoading, isAuthenticated, login, register, logout, error };
 }

@@ -43,13 +43,15 @@ export default function UserMenu() {
 
   const t = translations[locale as keyof typeof translations] || translations.fr;
 
-  // Logs de débogage
-  console.log('🔍 UserMenu Debug:', {
-    user: user,
-    isAuthenticated: isAuthenticated,
-    token: localStorage.getItem('token'),
-    isOpen: isOpen
-  });
+  // Logs de débogage - avec vérification côté client
+  useEffect(() => {
+    console.log('🔍 UserMenu Debug:', {
+      user: user,
+      isAuthenticated: isAuthenticated,
+      token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+      isOpen: isOpen
+    });
+  }, [user, isAuthenticated, isOpen]);
 
   useEffect(() => {
     const savedLocale = localStorage.getItem('locale') || 'fr';

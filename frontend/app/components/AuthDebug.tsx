@@ -1,8 +1,19 @@
 "use client";
 import { useAuth } from '../hooks/useAuth';
+import { useState, useEffect } from 'react';
 
 export default function AuthDebug() {
   const { user, isAuthenticated, token, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Ne pas afficher pendant le rendu côté serveur
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="fixed top-4 right-4 bg-black text-white p-4 rounded-lg text-xs z-50">
