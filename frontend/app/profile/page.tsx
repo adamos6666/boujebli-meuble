@@ -53,24 +53,54 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user: hookUser, isAuthenticated: hookIsAuthenticated } = useAuth();
   const router = useRouter();
   const [locale, setLocale] = useState('fr');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  // État local pour l'authentification
+  const [localUser, setLocalUser] = useState(null);
+  const [localIsAuthenticated, setLocalIsAuthenticated] = useState(false);
 
   const t = translations[locale as keyof typeof translations] || translations.fr;
+
+  // Charger les données depuis localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      
+      if (token && userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          setLocalUser(userData);
+          setLocalIsAuthenticated(true);
+          console.log('✅ ProfilePage: Utilisateur chargé depuis localStorage:', userData);
+        } catch (error) {
+          console.error('❌ ProfilePage: Erreur parsing user:', error);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const savedLocale = localStorage.getItem('locale') || 'fr';
     setLocale(savedLocale);
   }, []);
 
+  // Utiliser les données locales si le hook ne fonctionne pas
+  const user = localUser || hookUser;
+  const isAuthenticated = localIsAuthenticated || hookIsAuthenticated;
+
   useEffect(() => {
     if (!isAuthenticated) {
+      console.log('❌ ProfilePage: Utilisateur non authentifié, redirection vers /login');
       router.push('/login');
+    } else {
+      console.log('✅ ProfilePage: Utilisateur authentifié:', user);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, user]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -99,94 +129,94 @@ export default function ProfilePage() {
     }
   };
 
-  if (!isAuthenticated || !user) {
-    return null;
+  // Afficher un loader pendant la vérification d'authentification
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* En-tête */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
-          <p className="text-gray-600">{t.subtitle}</p>
-        </div>
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
+            <p className="text-gray-600">{t.subtitle}</p>
+          </div>
 
-        {/* Formulaire de profil */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Nom */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 {t.name}
               </label>
               <input
-                {...register("name")}
+                {...register('name')}
                 type="text"
                 id="name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Votre nom complet"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t.name}
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
               )}
             </div>
 
-            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 {t.email}
               </label>
               <input
-                {...register("email")}
+                {...register('email')}
                 type="email"
                 id="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="votre@email.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={t.email}
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
 
-            {/* Rôle (lecture seule) */}
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t.role}
               </label>
               <input
                 type="text"
-                id="role"
-                value={user.role}
+                value={user?.role || ''}
                 disabled
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
               />
             </div>
 
-            {/* Message de succès/erreur */}
             {message && (
-              <div className={`p-4 rounded-lg ${
+              <div className={`p-4 rounded-md ${
                 message.type === 'success' 
-                  ? 'bg-green-50 border border-green-200 text-green-700' 
-                  : 'bg-red-50 border border-red-200 text-red-700'
+                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                  : 'bg-red-50 text-red-800 border border-red-200'
               }`}>
                 {message.text}
               </div>
             )}
 
-            {/* Boutons */}
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 {t.cancel}
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? t.loading : t.save}
               </button>
