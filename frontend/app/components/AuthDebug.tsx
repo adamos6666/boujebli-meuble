@@ -12,7 +12,8 @@ export default function AuthDebug() {
     user: null,
     localStorageToken: null,
     localStorageUser: null,
-    localIsAuthenticated: false
+    localIsAuthenticated: false,
+    localStorageRaw: null
   });
 
   useEffect(() => {
@@ -48,7 +49,8 @@ export default function AuthDebug() {
         user: finalUser,
         localStorageToken: localStorageToken,
         localStorageUser: localUser,
-        localIsAuthenticated: localIsAuthenticated
+        localIsAuthenticated: localIsAuthenticated,
+        localStorageRaw: localStorageUser
       });
     }
   }, [mounted, hookUser, hookIsAuthenticated, hookToken, isLoading]);
@@ -68,6 +70,7 @@ export default function AuthDebug() {
         <p>User (hook): {debugInfo.user ? '✅' : '❌'}</p>
         <p>User (localStorage): {debugInfo.localStorageUser ? '✅' : '❌'}</p>
         <p>Local Auth: {debugInfo.localIsAuthenticated ? '✅' : '❌'}</p>
+        <p>localStorage Raw: {debugInfo.localStorageRaw ? '📄' : '❌'}</p>
         
         {debugInfo.user && (
           <div className="mt-2 p-2 bg-gray-800 rounded">
@@ -84,6 +87,13 @@ export default function AuthDebug() {
             <p>Name: {debugInfo.localStorageUser.name}</p>
             <p>Email: {debugInfo.localStorageUser.email}</p>
             <p>Role: {debugInfo.localStorageUser.role}</p>
+          </div>
+        )}
+
+        {debugInfo.localStorageRaw && (
+          <div className="mt-2 p-2 bg-gray-800 rounded">
+            <p className="font-semibold">localStorage Raw:</p>
+            <p className="text-xs break-all">{debugInfo.localStorageRaw}</p>
           </div>
         )}
       </div>
